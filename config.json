@@ -1,0 +1,14 @@
+{
+  "database": {
+    "__comment": "mycomment",
+    "user": "root",
+    "password": "SBM4711sbm12345$%!",
+    "ip": "127.0.0.1",
+    "port": "3306",
+    "dbname": "testdbpfe"
+  },
+  "app": {
+    "host": "0.0.0.0",
+    "port": "8080"
+  }
+}
