@@ -4,11 +4,12 @@ from sqlalchemy import LargeBinary
 
 
 
-class Material(Base):
-    __tablename__ = "materials"
+class MaterialStock(Base):
+    __tablename__ = "stock"
     id = Column(Integer, primary_key=True, index=True)
-    matname = Column(String(255))
-    desk_id = Column(Integer, ForeignKey("desks.desk_id"))
+    name = Column(String(255),unique=True)
+    picture = Column(LargeBinary)
+    quantity = Column(Integer)
 
     
 

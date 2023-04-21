@@ -25,7 +25,7 @@ async def getWorkspacesNames(db : Session = Depends(get_db)):
 
 @mapRouter.put('/workspace/{id}')
 async def updateWorkspace(id : str, request : WorkspaceUpdateSchema, db : Session = Depends(get_db)):
-    return MapController.updateWorkspace(id,request,db)
+    return  MapController.updateWorkspace(id,request,db)
 
 @mapRouter.delete('/object/{id}')
 async def removeObject(id,db : Session = Depends(get_db)):

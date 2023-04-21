@@ -15,6 +15,7 @@ class Object(Base):
     flipX = Column(Boolean)
     flipY = Column(Boolean)
     o = Column(Float) 
+    
 
     tags = Column(JSON,nullable=True)
     discriminator = Column('type', String(50))
@@ -26,4 +27,3 @@ class Object(Base):
         'polymorphic_identity': 'object'
         
     }
-

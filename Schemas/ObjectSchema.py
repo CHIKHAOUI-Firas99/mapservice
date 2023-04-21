@@ -13,3 +13,4 @@ class ObjectSchema(BaseModel):
     o : float
     type : str
     tags:list=None
+    material:list=None

@@ -13,3 +13,4 @@ class ObjectUpdateSchema(BaseModel):
     o : float
     type : str
     tags:list
+    material:list=None

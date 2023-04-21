@@ -1,13 +1,14 @@
 import base64
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, validator
-
+from typing import Optional
 
 class MaterialSchema(BaseModel):
-    name: str = Form(...),
+    name: str 
     picture: bytes 
-    quantity: str = Form(...),
-    desk_id: str = Form(...)
+    quantity: Optional[str] = None
+    desk_id: Optional[str] = None
+
     
     # @validator('picture', pre=True)
     # def encode_picture(cls, v):
