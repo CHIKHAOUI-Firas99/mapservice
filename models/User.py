@@ -6,5 +6,6 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer , primary_key = True , index = True)
     name=Column(String(250))
-    desks = relationship("Reservation",back_populates="user")
+    demandes = relationship("Demand", uselist=False, back_populates="user", cascade="all, delete-orphan")
+    desks = relationship("Reservation", back_populates="user")
 

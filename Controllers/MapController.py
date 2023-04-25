@@ -161,6 +161,14 @@ def updateWorkspace(id: int, request: WorkspaceUpdateSchema, db: Session) -> Non
 
         # Commit the changes to the database.
         db.commit()
+        allMatInstock=db.query(MaterialStock).all()
+        for i in allMatInstock:
+            if i.quantity == 0:
+                matexist=db.query(Material).filter(Material.matname == i.name).first()
+
+                if not matexist:
+                   db.query(MaterialStock).filter(MaterialStock.name == i.name).delete()
+        db.commit()
     except IntegrityError as e:
         # Handle the error
         db.rollback()
@@ -203,12 +211,14 @@ def updateObject(o, db):
             elif material not in existing_names:
               if mat_in_stock :  
                 mat_in_stock.quantity -= 1
-            
-
             mat = Material(matname=material,desk_id=o.id)
-            
             db.add(mat)
-
+            if mat_in_stock:
+              
+              if mat_in_stock.quantity == 0:
+                matexist=db.query(Material).filter(Material.matname == material).first()
+                # if not matexist:
+                #   db.query(MaterialStock).filter(MaterialStock.name == material).delete()
               
         for name in existing_names:
                     

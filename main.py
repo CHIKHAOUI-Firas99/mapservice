@@ -7,8 +7,12 @@ from models.Workspace import Workspace
 from models.Reservation import Reservation
 from models.Door import Door
 from models.Material import Material
+from models.Demandes import Demand
+from models.Notification import Notification
+
 from roots.MapRoot import mapRouter
 from roots.MaterialRoute import materialRouter
+from roots.demandsRoot import demandrouter
 from sqlalchemy.orm import Session
 from database.database import get_db
 from roots.ObjectRoot import ObjectRouter
@@ -31,3 +35,4 @@ async def root(db : Session = Depends(get_db)):
 app.include_router(mapRouter)
 app.include_router(materialRouter)
 app.include_router(ObjectRouter)
+app.include_router(demandrouter)

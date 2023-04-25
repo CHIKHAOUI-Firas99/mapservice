@@ -4,4 +4,4 @@ from Schemas.MaterialSchema import MaterialSchema
 
 class UpdateObjectSchema(BaseModel):
     material: Optional[List[MaterialSchema]] 
-    tags: list 
+    tags: Optional[list] 

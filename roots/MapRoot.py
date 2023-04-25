@@ -5,7 +5,7 @@ from Schemas.WorkspaceUpdateSchema import WorkspaceUpdateSchema
 from database.database import get_db
 from sqlalchemy.orm import Session
 from database.database import get_db
-from Controllers import MapController
+from Controllers import MapController,BookingController
 
 
 
@@ -37,3 +37,11 @@ async def removeObject(id,db : Session = Depends(get_db)):
 
 
 
+@mapRouter.get('/workspaces')
+async def getWorkspacesForBooking(date :str,db : Session = Depends(get_db)):
+    return BookingController.getWorkspacesForBooking(date,db)
+
+
+@mapRouter.get('/workspaceToBook')
+async def getWorkspaceForBook(date :str,name:str,db : Session = Depends(get_db)):
+    return BookingController.getWorkspaceForBook(date,name,db)

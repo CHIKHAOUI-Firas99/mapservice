@@ -1,7 +1,6 @@
-from sqlalchemy import BLOB, Column, ForeignKey, Integer, String,BINARY
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from database.database import Base
-from sqlalchemy import LargeBinary
-
 
 
 class Material(Base):
@@ -9,6 +8,5 @@ class Material(Base):
     id = Column(Integer, primary_key=True, index=True)
     matname = Column(String(255))
     desk_id = Column(Integer, ForeignKey("desks.desk_id"))
-
+    desk = relationship("Desk", back_populates="materials")
     
-

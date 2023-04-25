@@ -8,9 +8,9 @@ class Desk(Object):
     __tablename__ = "desks"
     desk_id = Column(Integer, ForeignKey('objects.id'), primary_key=True)
     
-    materials = relationship("Material")
-    users = relationship("Reservation",back_populates="desk")
+    materials = relationship("Material", back_populates="desk")
+    users = relationship("Reservation", back_populates="desk")
+    demandes = relationship("Demand", back_populates="desk")
     __mapper_args__ = dict(
         polymorphic_identity = 'desk'
-
     )
