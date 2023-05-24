@@ -1,12 +1,12 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, validator
-class DemandMaterial(BaseModel):
-    material: str
-    quantity: int
+
 
 
 class DemandBase(BaseModel):
-    demandes: list[DemandMaterial]
+    object:str
+    description: Optional[str]
+    status: Optional[str]
 
 
 

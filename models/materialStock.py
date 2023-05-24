@@ -4,6 +4,7 @@ from sqlalchemy import LargeBinary
 
 
 
+
 class MaterialStock(Base):
     __tablename__ = "stock"
     id = Column(Integer, primary_key=True, index=True)

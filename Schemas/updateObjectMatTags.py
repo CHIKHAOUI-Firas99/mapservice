@@ -3,5 +3,5 @@ from pydantic import BaseModel
 from Schemas.MaterialSchema import MaterialSchema
 
 class UpdateObjectSchema(BaseModel):
-    material: Optional[List[MaterialSchema]] 
+    material: Optional[list] 
     tags: Optional[list] 

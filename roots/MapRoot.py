@@ -38,10 +38,10 @@ async def removeObject(id,db : Session = Depends(get_db)):
 
 
 @mapRouter.get('/workspaces')
-async def getWorkspacesForBooking(date :str,db : Session = Depends(get_db)):
-    return BookingController.getWorkspacesForBooking(date,db)
+async def getWorkspacesForBooking(date :str,userId,db : Session = Depends(get_db)):
+    return BookingController.getWorkspacesForBooking(date,userId,db)
 
 
 @mapRouter.get('/workspaceToBook')
-async def getWorkspaceForBook(date :str,name:str,db : Session = Depends(get_db)):
-    return BookingController.getWorkspaceForBook(date,name,db)
+async def getWorkspaceForBook(date :str,userId,name:str,db : Session = Depends(get_db)):
+    return BookingController.getWorkspaceForBook(date,userId,name,db)

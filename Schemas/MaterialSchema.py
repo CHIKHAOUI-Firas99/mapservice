@@ -5,7 +5,7 @@ from typing import Optional
 
 class MaterialSchema(BaseModel):
     name: str 
-    picture: bytes 
+    picture: Optional [bytes] 
     quantity: Optional[str] = None
     desk_id: Optional[str] = None
 
