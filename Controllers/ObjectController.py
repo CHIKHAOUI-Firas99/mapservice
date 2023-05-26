@@ -6,10 +6,10 @@ from Schemas.MaterialSchema import MaterialSchema
 from Schemas.ObjectSchema import ObjectSchema
 from Schemas.updateObjectMatTags import UpdateObjectSchema
 from database.database import SessionLocal
-from models.Material import DeskMaterial
+from models.DeskMaterial import DeskMaterial
 from models.Object import Object
 from models.Workspace import Workspace
-from models.materialStock import MaterialStock
+from models.Material import Material
 
 
 
@@ -86,7 +86,7 @@ def update_object(
             
     # Delete all materials associated with this object
     for item in existingnames:
-        c= db.query(MaterialStock).filter(MaterialStock.name == item).first()
+        c= db.query(Material).filter(Material.name == item).first()
         if item not in newnames:
           c.quantity=c.quantity +1
 
@@ -108,7 +108,7 @@ def update_object(
                 desk_id=object_id
             )
             db.add(material_data)
-            matInStock=db.query(MaterialStock).filter(MaterialStock.name == material.name).first()
+            matInStock=db.query(Material).filter(Material.name == material.name).first()
             print(matInStock.quantity >0 and  matInStock.name not in existingnames )
             if matInStock.quantity >0 and  matInStock.name not in existingnames  :
 
@@ -121,7 +121,7 @@ def update_object(
     if updateObj.material:
       
      if (matInStock.quantity == 0):
-                db.query(MaterialStock).filter(MaterialStock.name == material.name).delete()
+                db.query(Material).filter(Material.name == material.name).delete()
     # Update tags for this object
     db.commit()
     db.refresh(db_object)
@@ -183,7 +183,7 @@ def update_object(
         for material in update_obj.material:
             new_mat_names.append(material)
             if material not in existing_names:
-                mat_in_stock = db.query(MaterialStock).filter(MaterialStock.name == material).first()
+                mat_in_stock = db.query(Material).filter(Material.name == material).first()
                 if mat_in_stock and mat_in_stock.quantity > 0:
                     mat_in_stock.quantity -= 1
                     db.add(DeskMaterial(
@@ -198,7 +198,7 @@ def update_object(
 
         for name in existing_names:
             if name not in new_mat_names:
-                mat_stock = db.query(MaterialStock).filter(MaterialStock.name == name).first()
+                mat_stock = db.query(Material).filter(Material.name == name).first()
                 if mat_stock:
                     mat_stock.quantity += 1
 

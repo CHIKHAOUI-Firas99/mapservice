@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from Schemas.MaterialSchema import MaterialSchema
 
-from models.Material import DeskMaterial
+from models.DeskMaterial import DeskMaterial
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -12,7 +12,7 @@ from fastapi import Form, HTTPException, UploadFile,File
 from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 
-from models.materialStock import MaterialStock
+from models.Material import Material
 import base64
 import io
 
@@ -47,7 +47,7 @@ async def create_material(
         )
 
         # Create a new material object using the ORM
-        db_material = MaterialStock(
+        db_material = Material(
             name=material.name,
             picture=material.picture,
             quantity=material.quantity
@@ -80,7 +80,7 @@ async def create_material(
 
 
 async def get_material(db: Session, material_id: str) -> DeskMaterial:
-    material = db.query(MaterialStock).filter(MaterialStock.id == material_id).first()
+    material = db.query(Material).filter(Material.id == material_id).first()
 
     if not material:
         raise HTTPException(status_code=404, detail='Material not found')
@@ -111,7 +111,7 @@ async def update_material(
     desk_id: Optional[str] = Form(None)
 ):
     # Get the material from the database
-    db_material = db.query(MaterialStock).filter(MaterialStock.id == material_id).first()
+    db_material = db.query(Material).filter(Material.id == material_id).first()
 
     if not db_material:
         raise HTTPException(status_code=404, detail="Material not found")
@@ -172,7 +172,7 @@ async def update_material(
 
 
 def delete_material(db: Session, material_id: int) -> None:
-    material = db.query(MaterialStock).filter(MaterialStock.id == material_id).first()
+    material = db.query(Material).filter(Material.id == material_id).first()
     if material:
         db.delete(material)
         db.commit()
@@ -181,7 +181,7 @@ def delete_material(db: Session, material_id: int) -> None:
 import binascii
 
 def get_all_materials(session: Session):
-    materials = session.query(MaterialStock).all()
+    materials = session.query(Material).all()
     decoded_materials = []
     material_names = set()
     

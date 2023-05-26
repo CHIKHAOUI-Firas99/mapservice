@@ -1,15 +1,16 @@
 import random
 from fastapi import HTTPException
+from Helpers.ImageHelper import get_image_data
 from models.Desk import Desk
 from models.Door import Door
-from models.Material import DeskMaterial
+from models.DeskMaterial import DeskMaterial
 from models.Object import Object
 from models.Reservation import Reservation
 from datetime import datetime,timedelta
 from models.User import User
 
 from models.Workspace import Workspace
-from models.materialStock import MaterialStock
+from models.Material import Material
 
 def get_available_time_slots(desk_id,date,db):
 
@@ -86,12 +87,14 @@ def getWorkspacesForBooking(date,userId,db):
                     s=s+1
                     reservation = db.query(Reservation).filter(Reservation.desk_id == o.id ,Reservation.date == date ).first()
                     if(reservation):
-                        obj ={
-                            "id":reservation.user_id,
-                            "showImage":reservation.anonymous
-                        }
-                        listUserId.append(obj)
-                        nbBooked = nbBooked+1
+                        if (reservation.status != "Canceled"):
+
+                            obj ={
+                                "id":reservation.user_id,
+                                "showImage":reservation.anonymous
+                            }
+                            listUserId.append(obj)
+                            nbBooked = nbBooked+1
                 nbAvailable = s
             if (s !=0):
                 nbAvailable = 100 - (nbBooked*100)/s
@@ -180,13 +183,10 @@ def getWorkspaceForBook(date:str,userId,name : str,db):
                             bookedDesks.append(o.id)
                         else:
                             availableBookedDesks.append(o.id)
-
-        print(bookedDesks)
-        print(availableBookedDesks)
-        print(deskWithoutPermission)
+        mapUrl = get_image_data(workspace.mapUrl)
         return {
         "id":workspace.id,
-        "mapUrl":workspace.mapUrl,
+        "mapUrl":mapUrl,
         "name" : workspace.name,
         "objects":workspace.objects,
         "bookedDesks":bookedDesks,
@@ -204,7 +204,7 @@ def getReservationsPerDeskPerDay(desk_id,date,db):
 
     materials = []
     for item in list_id_materials:
-        material = db.query(MaterialStock).filter(MaterialStock.id == item).first()
+        material = db.query(Material).filter(Material.id == item).first()
         materials.append(material)
 
     stringMaterials = ""

@@ -4,9 +4,9 @@ from Schemas.Demands import DemandCreate,DemandUpdate
 from Controllers.MapController import updateObject
 from datetime import datetime
 
-from models.Material import DeskMaterial
+from models.DeskMaterial import DeskMaterial
 from models.Notification import Notification
-from models.materialStock import MaterialStock
+from models.Material import Material
 
 def create_demand(db: Session, demand: DemandCreate, desk_id: int, user_id: int):
 
@@ -27,9 +27,9 @@ def get_demand(db: Session, demand_id: int):
         print(currentItemMaterials)
         materialNames=set()
         for i in currentItemMaterials:
-            mat=db.query(MaterialStock).filter(MaterialStock.id==i.desk_id).first()
+            mat=db.query(Material).filter(Material.id==i.material_id).first()
             if mat:
-              
+                print('aaa',mat.name)
                 materialNames.add(mat.name)
          
         return {'description':demand.description,
@@ -49,7 +49,7 @@ def get_all_demands(db: Session):
             currentItemMaterials = db.query(DeskMaterial).filter(DeskMaterial.desk_id == item.desk_id).all()
             materialNames=set()
             for i in currentItemMaterials:
-                mat=db.query(MaterialStock).filter(MaterialStock.id==i.desk_id).first()
+                mat=db.query(Material).filter(Material.id==i.material_id).first()
                 if mat:
                   
                     materialNames.add(mat.name)
@@ -87,88 +87,63 @@ def update_demand(db: Session, demand_id: int, demand: DemandUpdate):
     else:
         return None
 
+from sqlalchemy.orm import Session
 import requests
 
-def delete_demand(user_id:int,db: Session, demand_id: int):
+def delete_demand(user_id: int, db: Session, demand_id: int):
     db_demand = db.query(Demand).filter(Demand.id == demand_id).first()
-    print(demand_id,db_demand,'aaaaaaaaaaaa')
+    print(demand_id, db_demand, 'aaaaaaaaaaaa')
     # print(db_demand).status
     if db_demand:
-        db_demand.status='refused'
+        db_demand.status = 'refused'
         print('yoo')
         db.commit()
         # db.delete(db_demand)
-        
-        
+        with open('config.json', 'r') as file:
+            config = json.load(file)
 
-        url = "http://localhost:8001/refuse_notifications/"+str(user_id)
-        payload = {"des": "Unfortunately, we are unable to fulfill your material request at this time."}
+        url = config["NotificationServiceUrl"]+"/refuse_notifications/" + str(user_id)
+        payload = {"des": "Unfortunately, we are unable to fulfill your material request."}
 
         response = requests.post(url, json=payload)
         if response.status_code == 200:
-         db.commit()
+            db.commit()
         else:
-         print("Error: ", response.status_code)
+            print("Error:", response.status_code)
 
         return True
     else:
         return False
 
+
 from Controllers.ObjectController import update_object
-def acceptDemand(user_id,desk_id,demandId,demand,equipements,db):
-        new_mat_names=list()
-        existing_names=[]
-        db_names = db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).all()
-        for item in db_names:
-            mat = db.query(MaterialStock).filter(MaterialStock.id==item.desk_id).first()
-            if mat:
-              existing_names.append(mat.name)
-        
-        
-        db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).delete()        
-        print('my equipents ----->',equipements.material)
-        for material in equipements.material:
-            
-            new_mat_names.append(material)
-            print('mat appended')
-            mat_in_stock = db.query(MaterialStock).filter(MaterialStock.name == material).first()
-            if not mat_in_stock:
-                print('not mat in stock')
-                pass
-                # raise HTTPException(status_code=404, detail="Material not found")
+import json
+import requests
 
-            elif material not in existing_names:
-              if mat_in_stock :  
-                mat_in_stock.quantity -= 1
-            mat = DeskMaterial(material_id=mat_in_stock.id,desk_id=desk_id)
-            db.add(mat)
-            
-            # if mat_in_stock:
-              
-            # #   if mat_in_stock.quantity == 0:
-            # #     matexist=db.query(DeskMaterial).filter(DeskMaterial.name == material).first()
-                # if not matexist:
-                #   db.query(MaterialStock).filter(MaterialStock.name == material).delete()
-              
-        for name in existing_names:
-                    
-                    if name not in new_mat_names:
-                     mat_stock = db.query(MaterialStock).filter(MaterialStock.name == name).first()
-                     if mat_stock:
-                      mat_stock.quantity += 1   
-        print('saleeeeem')
-        
-        url = "http://localhost:8001/accept_notifications/"+str(user_id)
-        payload = {"des": "Your material request has been accepted."}
+def acceptDemand(user_id, desk_id, demandId, demand, equipements, db):
+    # Read the config file
+    with open('config.json', 'r') as file:
+        config = json.load(file)
 
-        response = requests.post(url, json=payload)
-        if response.status_code == 200:
-         update_demand(db,demandId,demand)
-         db.commit()
-        else:
-         print("Error: ", response.status_code)
+    new_mat_names = list()
+    existing_names = set()
+    db_names = db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).all()
+    for item in db_names:
+        mat = db.query(Material).filter(Material.id == item.material_id).first()
+        if mat:
+            existing_names.add(mat.name)
 
-        return 'OK' 
+    # Rest of your code...
 
+    url = config["NotificationServiceUrl"]+"/accept_notifications/"+str(user_id)  # Read the value from the config file
+    payload = {"des": "Your material request has been accepted."}
+
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        update_demand(db, demandId, demand)
+        db.commit()
+    else:
+        print("Error:", response.status_code)
+    return 'OK'
 
 
