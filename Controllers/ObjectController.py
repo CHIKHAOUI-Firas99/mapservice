@@ -6,7 +6,7 @@ from Schemas.MaterialSchema import MaterialSchema
 from Schemas.ObjectSchema import ObjectSchema
 from Schemas.updateObjectMatTags import UpdateObjectSchema
 from database.database import SessionLocal
-from models.Material import Material
+from models.Material import DeskMaterial
 from models.Object import Object
 from models.Workspace import Workspace
 from models.materialStock import MaterialStock
@@ -44,7 +44,7 @@ def get_object_by_id(db: Session, object_id: int) -> ObjectSchema:
         raise HTTPException(status_code=404, detail="Object not found")
     
     # get the material affected to this object
-    materials = db.query(Material).filter(Material.desk_id==object_id).all()
+    materials = db.query(DeskMaterial).filter(DeskMaterial.desk_id==object_id).all()
     listTags=db_object.tags
     result=list()
     d = {'materials': []}
@@ -70,10 +70,10 @@ def update_object(
     db: Session
 ):
     db_object = db.query(Object).filter(Object.id == object_id).first()
-    newMatNames=list()
+    newnames=list()
     if not db_object:
         raise HTTPException(status_code=404, detail="Object not found")
-    db_names=db.query(Material).filter(Material.desk_id == object_id).all()
+    db_names=db.query(DeskMaterial).filter(DeskMaterial.desk_id == object_id).all()
     existingnames=list()
     for item in db_names:
         print(item.name)
@@ -82,18 +82,18 @@ def update_object(
     
     if updateObj.material:
           for item in updateObj.material:
-              newMatNames.append(item.name)
+              newnames.append(item.name)
             
     # Delete all materials associated with this object
     for item in existingnames:
         c= db.query(MaterialStock).filter(MaterialStock.name == item).first()
-        if item not in newMatNames:
+        if item not in newnames:
           c.quantity=c.quantity +1
 
 
 
         
-    db.query(Material).filter(Material.desk_id == object_id).delete()
+    db.query(DeskMaterial).filter(DeskMaterial.desk_id == object_id).delete()
 
     # Create new materials for this object  
     
@@ -101,7 +101,7 @@ def update_object(
         for material in updateObj.material:
 
 
-            material_data = Material(
+            material_data = DeskMaterial(
                 name=material.name,
                 picture=material.picture,
                 quantity=material.quantity,
@@ -176,7 +176,7 @@ def update_object(
     if not db_object:
         raise HTTPException(status_code=404, detail="Object not found")
         
-    db_names = db.query(Material).filter(Material.desk_id == object_id).all()
+    db_names = db.query(DeskMaterial).filter(DeskMaterial.desk_id == object_id).all()
     existing_names = [item.name for item in db_names]
     
     if update_obj.material:
@@ -186,7 +186,7 @@ def update_object(
                 mat_in_stock = db.query(MaterialStock).filter(MaterialStock.name == material).first()
                 if mat_in_stock and mat_in_stock.quantity > 0:
                     mat_in_stock.quantity -= 1
-                    db.add(Material(
+                    db.add(DeskMaterial(
                         name=material,
                         picture=material.picture,
                         quantity=1,

@@ -4,7 +4,7 @@ from Schemas.WorkspaceUpdateSchema import WorkspaceUpdateSchema
 from errors import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 from models.Desk import Desk
 from models.Door import Door
-from models.Material import Material
+from models.Material import DeskMaterial
 from models.Object import Object
 from models.Workspace import Workspace
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +14,7 @@ from models.materialStock import MaterialStock
 def addWorkspace(request : WorkspaceSchema , db):
     workspace = Workspace(name = request.name , mapUrl = request.mapUrl,tags=request.tags)
     for o in request.objects:
-        workspace.objects.append(createObject(o,o.material,db))
+        workspace.objects.append(createObject(o,[],db))
     try:
         db.add(workspace)
         db.commit()
@@ -25,7 +25,7 @@ def addWorkspace(request : WorkspaceSchema , db):
 
 
 def createObject(object, mat, db):
-    print('create object function')
+    print('create object function',mat)
     if object.type.upper() == "DESK":
         o = Desk(path=object.path,
                  x=object.x,
@@ -42,19 +42,21 @@ def createObject(object, mat, db):
         print('belllehyyyyyyy , ----->',o.id)
         print(mat)
         if mat:
-          
             for material in mat:
                 if material:
                     mat_in_stock = db.query(MaterialStock).filter(MaterialStock.name == material).first()
                     if mat_in_stock and mat_in_stock.quantity > 0:
                         mat_in_stock.quantity -= 1
-                        db.add(Material(matname=material, desk_id=o.id))  # add the material to the database with the object ID
-                    else:
-                        db.rollback()
-                        raise HTTPException(status_code=404, detail="Material not found or out of stock")
+                        db.add(DeskMaterial(material_id=mat_in_stock.id, desk_id=o.id))  # add the material to the database with the object ID
+                        print('haaaaaaa')
+                        print(mat)
+                        db.commit()
+
+                    # else:
+                    #     db.rollback()
+                        # raise HTTPException(status_code=404, detail="Material not found or out of stock")
             # commit the transaction to the database
-                    db.commit()
-        return o
+        
     elif object.type.upper() == "DOOR":
         o = Door(path=object.path,
                  x=object.x,
@@ -66,43 +68,48 @@ def createObject(object, mat, db):
                  o=object.o,
                  tags=object.tags
                  )
-        return o
+    return o    
 
 
 
 
 
 
-def getWorkspace(name : str,db:Session):
+def getWorkspace(name: str, db: Session):
     workspace = db.query(Workspace).filter(Workspace.name == name).first()
-    if(workspace):
-        listObjectNames=list()
-        if (workspace.objects):
-
+    if workspace:
+        listObjectNames = []
+        if workspace.objects:
             for i in workspace.objects:
                 if i.discriminator == 'desk':
-                    mat=db.query(Material).filter(Material.desk_id==i.id).all()
+                    desk_materials = db.query(DeskMaterial).filter(DeskMaterial.desk_id == i.id).all()
+                    material_ids = [dm.material_id for dm in desk_materials]
                     values = []
-                    for item in mat:
-                        if item.matname not in values:
-                          
-                            values.append(item.matname)
-                    listObjectNames.append({'id': i.id, 'values': values}) 
+                    for material_id in material_ids:
+                        material = db.query(MaterialStock).filter(MaterialStock.id == material_id).first()
+                        if material and material.name not in values:
+                            values.append(material.name)
+                    listObjectNames.append({'id': i.id, 'values': values})
         return {
-        "id":workspace.id,
-        "mapUrl":workspace.mapUrl,
-        "name" : workspace.name,
-        "objects":workspace.objects,
-        "tags":workspace.tags,
-        "matnames":listObjectNames
-    }
+            "id": workspace.id,
+            "mapUrl": workspace.mapUrl,
+            "name": workspace.name,
+            "objects": workspace.objects,
+            "tags": workspace.tags,
+            "matnames": listObjectNames
+        }
     else:
         return {}
+
 
 def getWorkspacesNames(db):
     workspaces = db.query(Workspace).all()
     namesList = [w.name for w in workspaces]
     return namesList
+
+
+
+
 
 
 def updateWorkspace(id: int, request: WorkspaceUpdateSchema, db: Session) -> None:
@@ -128,27 +135,40 @@ def updateWorkspace(id: int, request: WorkspaceUpdateSchema, db: Session) -> Non
 
         # Keep track of the IDs of the objects that are currently in the workspace.
         current_object_ids = set(o.id for o in workspace.objects)
-        new_object_ids=set(o.id for o in request.objects)
+        new_object_ids=set(int(o.id) for o in request.objects)
+        print(new_object_ids,'<---newwww')
         for item in current_object_ids:
             if item not in new_object_ids:
-                mat=db.query(Material).filter(Material.desk_id==item).all()
-                mat=set(o.matname for o in mat)
-                for i in mat:
-                 matstock=db.query(MaterialStock).filter(MaterialStock.name==i).first()
-                 print('haaa')
-                 if matstock :
-                  matstock.quantity +=1
-            db.query(Material).filter(Material.desk_id==item).delete()
+                print(item,'<--- item')
+                desk_materials=db.query(DeskMaterial).filter(DeskMaterial.desk_id==item).all()
+                mat=set()
+                material_ids = [dm.material_id for dm in desk_materials]
+                for item in material_ids:
+                 material =db.query(MaterialStock).filter(MaterialStock.id == item).first()
+                 material.quantity+=1   
+                
+                
+                
+                # for i in mat:
+                #  matstock=db.query(MaterialStock).filter(MaterialStock.name==i).first()
+                #  print('haaa')
+                #  if matstock :
+                #   matstock.quantity +=1
+            # db.query(DeskMaterial).filter(DeskMaterial.desk_id==item).delete()
         # Update or create each object in the request.
         for obj_request in request.objects:
+
+             
             obj_id = int(obj_request.id)
             if obj_id > 0:
                 # Update an existing object.
                 updateObject(obj_request, db)
                 current_object_ids.remove(obj_id)
+
             else:
                 print('ahwaaaaaaaa ------->',obj_request.material)
                 # Create a new object.
+                
                 
 
                 obj = createObject(obj_request,obj_request.material,db)
@@ -158,16 +178,25 @@ def updateWorkspace(id: int, request: WorkspaceUpdateSchema, db: Session) -> Non
         # Delete any objects that are not in the request.
         for obj_id in current_object_ids:
             removeObject(obj_id, db)
-
+        print('moshklt el committttttt')
         # Commit the changes to the database.
         db.commit()
+        print('pffffffffff')
         allMatInstock=db.query(MaterialStock).all()
         for i in allMatInstock:
             if i.quantity == 0:
-                matexist=db.query(Material).filter(Material.matname == i.name).first()
+                matexist=db.query(DeskMaterial).filter(DeskMaterial.desk_id == i.id).first()
 
                 if not matexist:
-                   db.query(MaterialStock).filter(MaterialStock.name == i.name).delete()
+                   print('okkkkk1')
+                   
+                #    db.query(DeskMaterial).filter(DeskMaterial.desk_id == i.id).delete()
+                   print('okkkkk2',i.id,db.query(MaterialStock).filter(MaterialStock.id == i.id).first().name)
+                    
+                #    matt=db.query(MaterialStock).filter(MaterialStock.id == i.id).first()
+                #    db.delete(matt)
+                   print('okkkkk3')
+
         db.commit()
     except IntegrityError as e:
         # Handle the error
@@ -181,7 +210,7 @@ def updateWorkspace(id: int, request: WorkspaceUpdateSchema, db: Session) -> Non
 
 
 def updateObject(o, db):
-    
+    print(o)
     obj = db.query(Object).filter(Object.id == o.id).first()
     obj.path = o.path
     obj.x = o.x
@@ -192,13 +221,22 @@ def updateObject(o, db):
     obj.flipY = o.flipY
     obj.o = o.o
     obj.tags = o.tags
-
-    db_names = db.query(Material).filter(Material.desk_id == o.id).all()
-    existing_names = [item.matname for item in db_names]
-    db.query(Material).filter(Material.desk_id == o.id).delete()
+    existing_names=list()
+    
+    db_names = db.query(DeskMaterial).filter(DeskMaterial.desk_id == o.id).all()
+    
+    print(db_names,'desk id',o.id)
+    for item in db_names:
+      material_db= db.query(MaterialStock).filter(MaterialStock.id == item.material_id).first()
+      if material_db:
+        #  print(material_db.name)
+         existing_names.append(material_db.name)
+    print('torr')
+    # db.query(DeskMaterial).filter(DeskMaterial.desk_id == o.id).delete()
     print('existing names ---> ',existing_names,'length existing ',len(db_names))
     new_mat_names = []
     if o.material:
+        print('tttt')
         for material in o.material:
             new_mat_names.append(material)
             
@@ -210,23 +248,21 @@ def updateObject(o, db):
 
             elif material not in existing_names:
               if mat_in_stock :  
-                mat_in_stock.quantity -= 1
-            mat = Material(matname=material,desk_id=o.id)
-            db.add(mat)
-            if mat_in_stock:
-              
-              if mat_in_stock.quantity == 0:
-                matexist=db.query(Material).filter(Material.matname == material).first()
-                # if not matexist:
-                #   db.query(MaterialStock).filter(MaterialStock.name == material).delete()
+                if mat_in_stock.quantity > 0:
+                  
+                    mat_in_stock.quantity -= 1
+
+                    mat = DeskMaterial(material_id=mat_in_stock.id,desk_id=o.id)
+                    db.add(mat)
+
               
         for name in existing_names:
-                    
+                    print('hana')
                     if name not in new_mat_names:
                      mat_stock = db.query(MaterialStock).filter(MaterialStock.name == name).first()
                      if mat_stock:
                       mat_stock.quantity += 1       
-    
+
     
     
     else :
@@ -236,7 +272,8 @@ def updateObject(o, db):
            
             mat.quantity+=1
             db.commit()
-    
+    db.commit()
+    print('3')
     return {"message": "Object updated successfully"}
 
 
@@ -263,17 +300,28 @@ def deleteWorkspace(workspace_id: int, db: Session):
     for obj in objects:
         if obj.discriminator == 'door':
           obj_id=obj.door_id
+          print('dooor')
         else :
             obj_id = obj.desk_id
-        materials = db.query(Material).filter(Material.desk_id == obj_id).all()
-        for material in materials:
-            material_names.add(material.matname)
-            db.delete(material)
-        for name in material_names:
-            stock = db.query(MaterialStock).filter(MaterialStock.name == name).first()
-            if stock:
-                stock.quantity += 1
-        material_names.clear()
+            print('desk')
+        print(obj_id,'objjj id')
+        materials = db.query(DeskMaterial).filter(DeskMaterial.desk_id == obj_id).all()
+        print('hwwwww lmaterials',materials)
+        for item in materials:
+         print(item.desk_id)
+         mat=db.query(MaterialStock).filter(MaterialStock.id ==item.material_id).first()
+         if mat:
+            print('ha233',mat.quantity)
+            mat.quantity+=1
+            db.commit()
+            material_names.add(mat.name)  
+            # db.delete(mat)      
+     
+        # for name in material_names:
+        #     stock = db.query(MaterialStock).filter(MaterialStock.name == name).first()
+        #     if stock:
+        #         stock.quantity += 1
+        # material_names.clear()
         db.delete(obj)
 
     db.delete(workspace)
@@ -281,5 +329,25 @@ def deleteWorkspace(workspace_id: int, db: Session):
     return {"message": "Workspace deleted successfully"}
 
 
+def update_object_tags_mat(object,name,action,db):
+    print('rrr')
+    workspace=db.query(Workspace).filter(Workspace.name==name).first()
+    if workspace :
+        print(action)
+        if action == "create":
+             print('waaaaaaa')
+             k=createObject(object,object.material,db)
+             workspace.objects.append(k) 
+             db.commit()
+             return k.id
+        elif action =="update":
+            print(object,'eeeeee')
+            updateObject(object,db)
+    else :         
+        raise HTTPException(status_code=404,detail="desk should be affected inside a valid workspace")
+ 
+
+    
+      
 
 

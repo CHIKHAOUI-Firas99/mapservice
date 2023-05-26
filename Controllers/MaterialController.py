@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from Schemas.MaterialSchema import MaterialSchema
 
-from models.Material import Material
+from models.Material import DeskMaterial
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -79,7 +79,7 @@ async def create_material(
 
 
 
-async def get_material(db: Session, material_id: str) -> Material:
+async def get_material(db: Session, material_id: str) -> DeskMaterial:
     material = db.query(MaterialStock).filter(MaterialStock.id == material_id).first()
 
     if not material:

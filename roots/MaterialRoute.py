@@ -10,7 +10,7 @@ from database.database import get_db
 from sqlalchemy.orm import Session
 from database.database import get_db
 from Controllers.MaterialController import create_material as addMat, get_material as getMat,get_all_materials, update_material as updateMat, delete_material
-from models.Material import Material
+from models.Material import DeskMaterial
 from models.materialStock import MaterialStock
 
 

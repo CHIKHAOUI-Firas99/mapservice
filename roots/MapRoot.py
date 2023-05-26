@@ -1,4 +1,5 @@
 from fastapi import APIRouter,Depends,status
+from Schemas.ObjectSchema import ObjectSchema
 from Schemas.WorkspaceSchema import WorkspaceSchema
 from Schemas.WorkspaceUpdateSchema import WorkspaceUpdateSchema
 
@@ -45,3 +46,7 @@ async def getWorkspacesForBooking(date :str,userId,db : Session = Depends(get_db
 @mapRouter.get('/workspaceToBook')
 async def getWorkspaceForBook(date :str,userId,name:str,db : Session = Depends(get_db)):
     return BookingController.getWorkspaceForBook(date,userId,name,db)
+
+@mapRouter.put('/update_desk/{name}')
+async def updateDeskDetails(object:ObjectSchema,name:str,action,db : Session = Depends(get_db)):    
+    return MapController.update_object_tags_mat(object,name,action,db)

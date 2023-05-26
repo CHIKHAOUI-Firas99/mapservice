@@ -6,7 +6,9 @@ from models.User import User
 from models.Workspace import Workspace
 from models.Reservation import Reservation
 from models.Door import Door
-from models.Material import Material
+# from models.Material import Material
+from models.Material import DeskMaterial
+
 from models.Demandes import Demand
 from models.Notification import Notification
 from models.Role import Role

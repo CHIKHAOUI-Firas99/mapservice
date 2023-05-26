@@ -22,7 +22,7 @@ class Workspace(Base):
     __tablename__ = "workspaces"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True)
-    tags = Column(JSON,nullable=True)
+    tags = Column(JSON, nullable=True)
     mapUrl = Column(Text)
-    objects = relationship("Object", back_populates="workspace", cascade='save-update')
+    objects = relationship("Object", back_populates="workspace", cascade='all, delete')
     

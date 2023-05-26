@@ -4,7 +4,7 @@ from Schemas.Demands import DemandCreate,DemandUpdate
 from Controllers.MapController import updateObject
 from datetime import datetime
 
-from models.Material import Material
+from models.Material import DeskMaterial
 from models.Notification import Notification
 from models.materialStock import MaterialStock
 
@@ -23,9 +23,15 @@ def create_demand(db: Session, demand: DemandCreate, desk_id: int, user_id: int)
 def get_demand(db: Session, demand_id: int):
     demand= db.query(Demand).filter(Demand.id == demand_id).first()
     if demand:
-        currentItemMaterials=db.query(Material).filter(Material.desk_id == demand.desk_id).all()
+        currentItemMaterials=db.query(DeskMaterial).filter(DeskMaterial.desk_id == demand.desk_id).all()
         print(currentItemMaterials)
-        materialNames=set(o.matname for o in currentItemMaterials)
+        materialNames=set()
+        for i in currentItemMaterials:
+            mat=db.query(MaterialStock).filter(MaterialStock.id==i.desk_id).first()
+            if mat:
+              
+                materialNames.add(mat.name)
+         
         return {'description':demand.description,
                 'object':demand.object,
                 'equipements':materialNames,
@@ -40,8 +46,13 @@ def get_all_demands(db: Session):
 
     if allDemands:
         for item in allDemands:
-            currentItemMaterials = db.query(Material).filter(Material.desk_id == item.desk_id).all()
-            materialNames = set(o.matname for o in currentItemMaterials)
+            currentItemMaterials = db.query(DeskMaterial).filter(DeskMaterial.desk_id == item.desk_id).all()
+            materialNames=set()
+            for i in currentItemMaterials:
+                mat=db.query(MaterialStock).filter(MaterialStock.id==i.desk_id).first()
+                if mat:
+                  
+                    materialNames.add(mat.name)
             d = {
                 'id': item.id,
                 'desk_id': item.desk_id,
@@ -106,9 +117,15 @@ def delete_demand(user_id:int,db: Session, demand_id: int):
 from Controllers.ObjectController import update_object
 def acceptDemand(user_id,desk_id,demandId,demand,equipements,db):
         new_mat_names=list()
-        db_names = db.query(Material).filter(Material.desk_id == desk_id).all()
-        existing_names = [item.matname for item in db_names]
-        db.query(Material).filter(Material.desk_id == desk_id).delete()        
+        existing_names=[]
+        db_names = db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).all()
+        for item in db_names:
+            mat = db.query(MaterialStock).filter(MaterialStock.id==item.desk_id).first()
+            if mat:
+              existing_names.append(mat.name)
+        
+        
+        db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).delete()        
         print('my equipents ----->',equipements.material)
         for material in equipements.material:
             
@@ -123,13 +140,13 @@ def acceptDemand(user_id,desk_id,demandId,demand,equipements,db):
             elif material not in existing_names:
               if mat_in_stock :  
                 mat_in_stock.quantity -= 1
-            mat = Material(matname=material,desk_id=desk_id)
+            mat = DeskMaterial(material_id=mat_in_stock.id,desk_id=desk_id)
             db.add(mat)
             
-            if mat_in_stock:
+            # if mat_in_stock:
               
-              if mat_in_stock.quantity == 0:
-                matexist=db.query(Material).filter(Material.matname == material).first()
+            # #   if mat_in_stock.quantity == 0:
+            # #     matexist=db.query(DeskMaterial).filter(DeskMaterial.name == material).first()
                 # if not matexist:
                 #   db.query(MaterialStock).filter(MaterialStock.name == material).delete()
               

@@ -2,13 +2,14 @@ import random
 from fastapi import HTTPException
 from models.Desk import Desk
 from models.Door import Door
-from models.Material import Material
+from models.Material import DeskMaterial
 from models.Object import Object
 from models.Reservation import Reservation
 from datetime import datetime,timedelta
 from models.User import User
 
 from models.Workspace import Workspace
+from models.materialStock import MaterialStock
 
 def get_available_time_slots(desk_id,date,db):
 
@@ -196,13 +197,22 @@ def getWorkspaceForBook(date:str,userId,name : str,db):
         return {}
 def getReservationsPerDeskPerDay(desk_id,date,db):
     reservations = db.query(Reservation).filter(Reservation.desk_id == desk_id , Reservation.date == date)
-    materials=db.query(Material).filter(Material.desk_id==desk_id).all()
-    stringMaterials=""
+    materials=db.query(DeskMaterial).filter(DeskMaterial.desk_id==desk_id).all()
+    list_id_materials=list()
+    for i in materials:
+        list_id_materials.append(i.material_id)
+
+    materials = []
+    for item in list_id_materials:
+        material = db.query(MaterialStock).filter(MaterialStock.id == item).first()
+        materials.append(material)
+
+    stringMaterials = ""
     if materials:
-     for index, item in enumerate(materials):
-        stringMaterials += item.matname
-        if index < len(materials) - 1:
-            stringMaterials += "-"
+        for i, item in enumerate(materials):
+            stringMaterials += item.name
+            if i < len(materials) - 1:
+                stringMaterials += "-"
     if(reservations):
         l=[]
         for r in reservations:
