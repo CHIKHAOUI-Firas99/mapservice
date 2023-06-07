@@ -351,7 +351,21 @@ def update_object_tags_mat(object,name,action,db):
         raise HTTPException(status_code=404,detail="desk should be affected inside a valid workspace")
  
 
-    
+def getDeskMatTags(desk_id,db:Session):
+    listMatNames=[]
+    tags=[]
+    deskmaterials=db.query(DeskMaterial).filter(DeskMaterial.desk_id == desk_id).all()
+    if deskmaterials:
+        for item in deskmaterials:
+            mat=db.query(Material).filter(Material.id == item.material_id).first()
+            listMatNames.append(mat.name)
+
+    obj=db.query(Object).filter(Object.id == desk_id).first()
+    if obj:
+      tags=obj.tags
+    return {"material":listMatNames,"tags":tags}
+
+
       
 
 

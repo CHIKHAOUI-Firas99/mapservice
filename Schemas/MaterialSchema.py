@@ -8,6 +8,7 @@ class MaterialSchema(BaseModel):
     picture: Optional [bytes] 
     quantity: Optional[str] = None
     desk_id: Optional[str] = None
+    description:Optional[str]=None
 
     
     # @validator('picture', pre=True)

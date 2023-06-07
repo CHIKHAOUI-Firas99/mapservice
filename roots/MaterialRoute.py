@@ -27,40 +27,41 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from PIL import UnidentifiedImageError
 # ...
-@materialRouter.post("/materials")
-async def create_material(db: Session = Depends(get_db),name: str = Form(...),picture: UploadFile = File(...),quantity: str = Form(...),):
+@materialRouter.post("/mapService/materials")
+async def create_material(db: Session = Depends(get_db),name: str = Form(...),picture: UploadFile = File(...),quantity: str = Form(...),description: str = Form(...)):
 
-    await addMat(db,name,picture,quantity)
+    await addMat(db,name,picture,quantity,description)
 
 
 
-@materialRouter.get("/materials/{material_id}")
+@materialRouter.get("/mapService/materials/{material_id}")
 async def get_material(material_id: int, db: Session = Depends(get_db)):
 
 
      return await getMat(db,material_id)
 
 # Endpoint to update a material by ID
-@materialRouter.put("/materials/{material_id}")
+@materialRouter.put("/mapService/materials/{material_id}")
 async def update_material(
     material_id: int,
     db: Session = Depends(get_db),
     name: Optional[str] = Form(None),
     picture: Optional[UploadFile] = File(None),
     quantity: Optional[str] = Form(None),
+    description:Optional[str] = Form(None),
     desk_id: Optional[str] = Form(None)
 ):
     # Get the material from the database
-    await updateMat(material_id,db,name,picture,quantity,desk_id) 
+    await updateMat(material_id,db,name,description,picture,quantity,desk_id) 
 
     # Update the material in the database
 
 
 # Endpoint to delete a material by ID
-@materialRouter.delete("/materials/{material_id}")
+@materialRouter.delete("/mapService/materials/{material_id}")
 async def delete_material_by_id(material_id: int, db: Session = Depends(get_db)):
     return delete_material(db,material_id)
-@materialRouter.get("/materials")
+@materialRouter.get("/mapService/materials")
 async def getAllMaterials( db: Session = Depends(get_db)):
     
     return get_all_materials(db)

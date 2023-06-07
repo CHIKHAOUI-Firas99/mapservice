@@ -12,12 +12,12 @@ from database.database import get_db
 from sqlalchemy.orm import Session
 from database.database import get_db
 ObjectRouter = APIRouter()
-@ObjectRouter.get("/object/{id}")
+@ObjectRouter.get("/mapService/object/{id}")
 async def getObject(id:int ,db: Session = Depends(get_db)):
     
     return get_object_by_id(db,id)
 
-@ObjectRouter.put("/object/{id}")
+@ObjectRouter.put("/mapService/object/{id}")
 async def getObject(id: int, u:UpdateObjectSchema, db: Session = Depends(get_db)):
     print('aaaaa')
     return update_object(id, u, db)

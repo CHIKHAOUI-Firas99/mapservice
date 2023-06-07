@@ -23,6 +23,7 @@ async def create_material(
     name: str = Form(...),
     picture: UploadFile = File(...),
     quantity: str = Form(...),
+    description:str=Form(...)
     # desk_id: str = Form(...)
 ):
     try:
@@ -43,14 +44,16 @@ async def create_material(
         material = MaterialSchema(
             name=name,
             picture=image_str,
-            quantity=quantity
+            quantity=quantity,
+            description=description
         )
 
         # Create a new material object using the ORM
         db_material = Material(
             name=material.name,
             picture=material.picture,
-            quantity=material.quantity
+            quantity=material.quantity,
+            description=material.description
         )
 
         # Add the material to the database
@@ -106,6 +109,7 @@ async def update_material(
     material_id: int,
     db: Session ,
     name: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
     picture: Optional[UploadFile] = File(None),
     quantity: Optional[str] = Form(None),
     desk_id: Optional[str] = Form(None)
@@ -123,6 +127,8 @@ async def update_material(
         db_material.quantity = quantity
     if desk_id:
         db_material.desk_id = desk_id
+    if description:
+        db_material.description=description
     if picture:
         try:
             # Read the image file content

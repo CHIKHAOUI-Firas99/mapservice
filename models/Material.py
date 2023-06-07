@@ -1,4 +1,4 @@
-from sqlalchemy import BLOB, Column, ForeignKey, Integer, String,BINARY
+from sqlalchemy import BLOB, Column, ForeignKey, Integer, String,BINARY, Text
 from database.database import Base
 from sqlalchemy import LargeBinary
 
@@ -11,7 +11,6 @@ class Material(Base):
     name = Column(String(255), unique=True)
     picture = Column(LargeBinary)
     quantity = Column(Integer)
-
+    description=Column(Text)
     desk_materials = relationship("DeskMaterial", backref="materials", cascade='all, delete')
     
-

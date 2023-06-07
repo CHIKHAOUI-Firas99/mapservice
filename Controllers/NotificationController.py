@@ -7,7 +7,7 @@ from models.Notification import Notification
 from sqlalchemy import desc
 
 def get_notifications_by_user_id(db: Session, user_id: int):
-    notifications = db.query(Notification).filter(Notification.user_id == user_id).order_by(
+    notifications = db.query(Notification).filter(Notification.user_id == user_id and Notification.deleted==False).order_by(
         desc(Notification.time)
     ).all()
     

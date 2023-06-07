@@ -102,7 +102,7 @@ def delete_demand(user_id: int, db: Session, demand_id: int):
         with open('config.json', 'r') as file:
             config = json.load(file)
 
-        url = config["NotificationServiceUrl"]+"/refuse_notifications/" + str(user_id)
+        url = config["analyseNotificationServiceUrl"]+"/analyseNotificationService/refuse_notifications/" + str(user_id)
         payload = {"des": "Unfortunately, we are unable to fulfill your material request."}
 
         response = requests.post(url, json=payload)
@@ -135,7 +135,7 @@ def acceptDemand(user_id, desk_id, demandId, demand, equipements, db):
 
     # Rest of your code...
 
-    url = config["NotificationServiceUrl"]+"/accept_notifications/"+str(user_id)  # Read the value from the config file
+    url = config["analyseNotificationServiceUrl"]+"/analyseNotificationService/accept_notifications/"+str(user_id)  # Read the value from the config file
     payload = {"des": "Your material request has been accepted."}
 
     response = requests.post(url, json=payload)

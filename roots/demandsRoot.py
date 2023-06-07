@@ -13,7 +13,7 @@ from database.database import get_db
 demandrouter = APIRouter()
 
 
-@demandrouter.post("/service2/add-demand/")
+@demandrouter.post("/mapService/add-demand/")
 def add(demand: DemandCreate, desk_id: int, user_id: int, db: Session = Depends(get_db)):
     print('aaaaaaa')
 
@@ -26,13 +26,13 @@ def add(demand: DemandCreate, desk_id: int, user_id: int, db: Session = Depends(
     return create_demand(db=db, demand=demand, desk_id=desk_id, user_id=user_id)
 
 
-@demandrouter.get("/demands/")
+@demandrouter.get("/mapService/demands/")
 def read_demands(db: Session = Depends(get_db)):
     demands = get_all_demands(db=db)
     return demands
 
 
-@demandrouter.get("/demand/{demand_id}")
+@demandrouter.get("/mapService/demand/{demand_id}")
 def read_demand(demand_id: int, db: Session = Depends(get_db)):
     db_demand = get_demand(db=db, demand_id=demand_id)
     if db_demand is None:
@@ -48,7 +48,7 @@ def read_demand(demand_id: int, db: Session = Depends(get_db)):
 #     return update(db=db, demand_id=demand_id, demand=demand)
 
 
-@demandrouter.put("/demands/{demand_id}/{user_id}")
+@demandrouter.put("/mapService/demands/{demand_id}/{user_id}")
 def delete_demand(user_id:int,demand_id: int, db: Session = Depends(get_db)):
     print(demand_id)
     db_demand = get_demand(db=db, demand_id=demand_id)
@@ -56,7 +56,7 @@ def delete_demand(user_id:int,demand_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Demand not found")
     return delete(user_id=user_id, db=db, demand_id=demand_id)
 
-@demandrouter.put("/acceptDemand/{desk_id}/{user_id}/{demandId}")
+@demandrouter.put("/mapService/acceptDemand/{desk_id}/{user_id}/{demandId}")
 def update_demand(user_id:int,desk_id: int,demandId : int, equipements: UpdateObjectSchema,demand:DemandUpdate, db: Session = Depends(get_db)):
     print('a')
     return acceptDemand(user_id,desk_id,demandId,demand,equipements,db)
