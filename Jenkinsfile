@@ -44,7 +44,7 @@ environment {
         script {
             withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]){
 //              sh "helm upgrade usermanagement usermanagement/back1 --set image.tag:v${DOCKER_IMAGE_TAG} -n helm-test"
-            sh "helm upgrade mapservice https://chikhaoui-firas99.github.io/helm-mapservice/back2-0.1.0.tgz --set image.tag=v${DOCKER_IMAGE_TAG} -n helm-test"
+            sh "helm upgrade mapservice https://chikhaoui-firas99.github.io/helm-mapservice/back2-0.1.0.tgz --set image.tag=v${DOCKER_IMAGE_TAG} -n app-istio"
         }
        }
       }
