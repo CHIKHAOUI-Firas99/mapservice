@@ -8,6 +8,20 @@ environment {
     //KUBERNETES_CA_CERTIFICATE = credentials('kube-certif')
   }
    stages {
+    stage('SonarQube') {
+    steps {
+        script {
+          withSonarQubeEnv (installationName:'SonarQube'){
+            sh """ export PATH="$PATH:/opt/sonar-scanner/bin"
+                sonar-scanner \
+                -Dsonar.projectKey=mapservice \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://192.168.162.104:9000 \
+                -Dsonar.login=d8f04174ecc1ef5650338a7899cbea00c7062f25"""
+          }
+        }
+    }
+} 
     stage('Build Docker Image') {
       steps {
         script {
